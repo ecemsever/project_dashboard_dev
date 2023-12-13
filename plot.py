@@ -14,15 +14,44 @@ st.set_page_config(
     )
 
 with st.sidebar:
-    aemo = Image.open(dir+'/aemo.png')
-    st.image(aemo)
-    st.markdown("Our project mission is seamless power grid system management with efficient resource allocation achieved by data driven operation, maintenance & planning")
+    red = Image.open(dir+'/images/red.png')
+    yellow = Image.open(dir+'/images/yellow.png')
+    green = Image.open(dir+'/images/green.png')
+    black = Image.open(dir+'/images/black.png')
+    st.markdown('<h1><center> 📬 Contact Us </center></h1>', unsafe_allow_html=True)
+    st.write("##")
 
-st.markdown("""## Energy Analytics for Victoria, Australia by PowerRangers""")
+    with st.container():
+
+        col1, col2 = st.columns(2)
+
+        col1.image(red)
+        col1.link_button("Muratcan", "https://www.linkedin.com/in/muratcankaplan?miniProfileUrn=urn%3Ali%3Afs_miniProfile%3AACoAADye9q4BjqgGfVqmNgKQS-HhQalOfJZBKyU&lipi=urn%3Ali%3Apage%3Ad_flagship3_search_srp_all%3BXhxGWeQVQZWMxiKi0iy1xg%3D%3D", use_container_width=True)
+
+        col2.image(yellow)
+        #col2.markdown("[Ecem Savaş](https://www.linkedin.com/in/ecemsever-bilkent/)")
+        col2.link_button("Ecem", "https://www.linkedin.com/in/ecemsever-bilkent/", use_container_width=True)
+
+    with st.container():
+
+        col1, col2 = st.columns(2)
+        col1.image(green)
+        col1.link_button("Ahmet Emre", "https://www.linkedin.com/in/ahmet-emre-topba%C5%9F-267391121?miniProfileUrn=urn%3Ali%3Afs_miniProfile%3AACoAAB4iVS8BN9tfUXZo2j0AcuCVnR603hSF_4A&lipi=urn%3Ali%3Apage%3Ad_flagship3_search_srp_all%3BleRDOKiKSZSdvj%2BtTawywA%3D%3D", use_container_width=True)
+
+        col2.image(black)
+        col2.link_button("Gürkan", "https://www.linkedin.com/in/g%C3%BCrkan-g%C3%BCnd%C3%BCz-970753193?miniProfileUrn=urn%3Ali%3Afs_miniProfile%3AACoAAC1-sqQBNxIm1OVJyqtMhIZrD9Gs8PIj-yU&lipi=urn%3Ali%3Apage%3Ad_flagship3_search_srp_all%3BktNP0zL%2BSuqRXnutJ5IYEg%3D%3D", use_container_width=True)
+
+
+# a little trick to shorten & center logo
+col1, col2 ,col3 = st.columns(3)
+
+powerrangers = Image.open(dir+'/images/powerrangers.png')
+col2.image(powerrangers)
+
+st.markdown("<h3> <p><center> Energy Analytics for Victoria, Australia </center></p> </h3>", unsafe_allow_html=True)
 
 def history():
-    history_data = pd.read_csv(dir+'/1_weeks_to_8_hours_pred.csv')
-    #history_data = pd.read_csv(dir+'/8_hour_predictions.csv.csv')    
+    history_data = pd.read_csv(dir+'/historical_demand.csv')    
     date_col = 'timestamp'
     # Construct date granularity features for past data
     history_data['Day'] = pd.to_datetime(history_data[date_col]).dt.date
@@ -37,17 +66,13 @@ def history():
     return history_data
 
 def data_8_hours():
-    #pred_8_hours = pd.read_csv(dir+'/1_weeks_to_8_hours_pred.csv')
     pred_8_hours = pd.read_csv(dir+'/8_hour_predictions.csv')    
-    #pred_8_hours = pred_8_hours.rename(columns={"valid_start": "Date"})
     pred_8_hours=pred_8_hours.rename(columns={"timestamp": "Date"})
 
     return pred_8_hours
 
 def data_168_hours():
-    #pred_168_hours = pd.read_csv(dir+'/4_weeks_to_1_weeks_pred.csv')
     pred_168_hours = pd.read_csv(dir+'/168_hour_predictions.csv')    
-    #pred_168_hours=pred_168_hours.rename(columns={"valid_start": "Date"})
     pred_168_hours=pred_168_hours.rename(columns={"timestamp": "Date"})
     return pred_168_hours
 
@@ -63,30 +88,55 @@ def calculate_mape(actual, predicted):
 def convert_df(df):
     return df.to_csv().encode('utf-8')
 
+# Processing prediction data to prepare it for the mape calculation
+# Get the latest 8 values in the data and flatten 8 predictions that corresponds to that actual values
+def t_minus_1_data_process(df, num_hours): 
+    # get latest 8 values
+    t_minus_1_all = df.iloc[(len(df)-(num_hours+1)):(len(df)+1)]
+    # hold actual values in one dataframe
+    t_minus_1_actual = t_minus_1_all[['Date','total_demand']].iloc[1:(num_hours+1)]
+    # flatten 8 predictions that corresponds to that actual values 
+    t_minus_1_pred = pd.DataFrame(t_minus_1_all.iloc[0,2:(num_hours+2)]).reset_index(drop=True)
+    t_minus_1_pred = t_minus_1_pred.rename(columns={t_minus_1_pred.columns[-1] : "demand_prediction"})
+    # merge actual and predicted values
+    t_minus_1 = pd.concat([t_minus_1_actual.reset_index(drop=True), t_minus_1_pred.reset_index(drop=True)], axis=1)
+    t_minus_1 = pd.DataFrame(t_minus_1)
+    t_minus_1['demand_prediction'] = t_minus_1['demand_prediction'].astype(float)
+
+    return t_minus_1
+    # Preparing data for the prediction plot
+def pred_data_process(df, num_hours):
+    latest_pred = pd.DataFrame(df.iloc[-1,2:(num_hours+2)]).reset_index(drop=True)
+    latest_pred = latest_pred.rename(columns={latest_pred.columns[-1] : "demand_prediction"})
+    latest_pred_date = df['Date'].iloc[-1]
+    pred_dates = pd.date_range(start=(pd.to_datetime(latest_pred_date)+ pd.Timedelta(hours=1)), end=(pd.to_datetime(latest_pred_date) + pd.Timedelta(hours=num_hours)),freq='H')
+    pred_w_dates = pd.concat([latest_pred.reset_index(drop=True), pd.DataFrame(pred_dates).reset_index(drop=True)], axis=1).rename(columns={0 : "Date", "demand_prediction" : "Prediction"})
+
+    return pred_w_dates
 
 # Name the tabs
-tab1, tab2, tab3, tab4 = st.tabs(["🌍 Historical Analytics", "📈 Shift Based Predictive Analytics", "📊 Weekly Predictive Analytics", "📬 Contact Us"])
+tab1, tab2, tab3 = st.tabs(["🌍 Historical Analytics", "📈 Shift Based Predictive Analytics", "📊 Weekly Predictive Analytics"])
 
 with tab1:
     
     history_data_daily = history_data.groupby(['Day'])['total_demand'].agg('sum').reset_index(name='Total Demand')
 
 
-    d1, d2 = st.columns(2)
+    col1, col2 = st.columns(2)
     #Default start date is the minimum date in the data
     start_date = min(history_data_daily["Day"])
     
     #Start Date filter
-    sd = d1.date_input("📆 Select a starting date",start_date)
+    sd = col1.date_input("📆 Select a starting date",start_date)
 
     #Default end date is the maximum date in the data
-    end_date=max(history_data_daily["Day"])
+    end_date = max(history_data_daily["Day"])
 
     # End date filter
-    ed=d2.date_input("📆 Select a end date",end_date)
+    ed = col2.date_input("📆 Select a end date",end_date)
 
     # Time granularity selectbox. 
-    with d1:
+    with col1:
         option = st.selectbox(
         'Please select a time granularity',
         ('Hourly', 'Daily', 'Weekly','Monthly'))
@@ -109,7 +159,6 @@ with tab1:
         
     elif option == 'Weekly' :
         pred_8_hours_weekly = history_data[history_data["Day"].between(sd, ed)].groupby(['Year/Week'])['total_demand'].agg('sum').reset_index(name='Total Demand')
-        
         # Create the line graph for weekly
         line_graph4 = px.line(
              data_frame = pred_8_hours_weekly, title='Total Demand Weekly', 
@@ -118,7 +167,6 @@ with tab1:
 
     else:
         pred_8_hours_monthly = history_data[history_data["Day"].between(sd, ed)].groupby(['Year/Month'])['total_demand'].agg('sum').reset_index(name='Total Demand')
-
         # Create the line graph for monthly
         line_graph3 = px.line(
             data_frame = pred_8_hours_monthly, title='Total Demand Monthly', 
@@ -127,58 +175,30 @@ with tab1:
 
 
 with tab2:
-
-    # Processing prediction data to prepare it for the mape calculation
-    # Get the latest 8 values in the data and flatten 8 predictions that corresponds to that actual values
-    def t_minus_1_data_process_8hours(): 
-        # get latest 8 values
-        t_minus_1_all = pred_8_hours.iloc[(len(pred_8_hours)-9):len(pred_8_hours)]
-        # hold actual values in one dataframe
-        t_minus_1_actual = t_minus_1_all[['Date','total_demand']].iloc[0:8]
-        # flatten 8 predictions that corresponds to that actual values 
-        t_minus_1_pred = pd.DataFrame(t_minus_1_all.iloc[0,2:10]).reset_index(drop=True)
-        t_minus_1_pred = t_minus_1_pred.rename(columns={t_minus_1_pred.columns[-1] : "demand_prediction"})
-        # merge actual and predicted values
-        t_minus_1 = pd.concat([t_minus_1_actual.reset_index(drop=True), t_minus_1_pred.reset_index(drop=True)], axis=1)
-        t_minus_1 = pd.DataFrame(t_minus_1)
-        t_minus_1['demand_prediction'] = t_minus_1['demand_prediction'].astype(float)
-
-        return t_minus_1
     
-    # Preparing data for the prediction plot
-    def pred_data_process_8hours():
-        latest_pred = pd.DataFrame(pred_8_hours.iloc[-1,2:10]).reset_index(drop=True)
-        latest_pred = latest_pred.rename(columns={latest_pred.columns[-1] : "demand_prediction"})
-        latest_pred_date = pred_8_hours['Date'].iloc[-1]
-        pred_dates = pd.date_range(start=(pd.to_datetime(latest_pred_date)), end=(pd.to_datetime(latest_pred_date) + pd.Timedelta(hours=7)),freq='H')
-        pred_w_dates = pd.concat([latest_pred.reset_index(drop=True), pd.DataFrame(pred_dates).reset_index(drop=True)], axis=1).rename(columns={0 : "Date", "demand_prediction" : "Prediction"})
-
-        return pred_w_dates
+    t_minus_1= t_minus_1_data_process(pred_8_hours, 8)
+    pred_w_dates = pred_data_process(pred_8_hours, 8)
     
-    t_minus_1= t_minus_1_data_process_8hours()
-    pred_w_dates = pred_data_process_8hours()
-
     # Download predictions
     csv = convert_df(pred_w_dates)
     st.download_button(
         label="Download Predictions as CSV",
         data=csv,
         file_name='predictions_8hours.csv',
-        mime='text/csv',
-    )
+        mime='text/csv')
 
-    if st.button('Update the Data', type="primary"):
+    if st.button('Update the 8 hours Data', type="primary"):
         pred_8_hours = data_8_hours()
-        t_minus_1= t_minus_1_data_process_8hours()
-        pred_w_dates = pred_data_process_8hours()
+        t_minus_1= t_minus_1_data_process(pred_8_hours, 8)
+        pred_w_dates = pred_data_process(pred_8_hours, 8)
 
-    mape = calculate_mape(t_minus_1['total_demand'],t_minus_1['demand_prediction'])
+    mape_8 = calculate_mape(t_minus_1['total_demand'],t_minus_1['demand_prediction'])
 
     # Publishing the first row
     col1, col2, col3 = st.columns(3)
     col1.metric("Prediction Available till", str(pd.to_datetime(pred_8_hours['Date'].iloc[-1]) + pd.Timedelta(hours=8)), "")
     col2.metric("Last Update", str(pd.Timestamp.today().strftime('%Y-%m-%d')) , "", delta_color="off")
-    col3.metric("MAPE", str(round(mape,2))+"%")
+    col3.metric("MAPE", str(round(mape_8,2))+"%")
 
     # Actual vs Prediction Graph
     line_graph0 = px.line(
@@ -202,42 +222,30 @@ with tab2:
     st.plotly_chart(line_graph_pred,use_container_width = True)
 
 with tab3:
+    t_minus_1_168hours= t_minus_1_data_process(pred_168_hours, 168)
+    pred_w_dates_168hours = pred_data_process(pred_168_hours, 168)
     
-    # Processing prediction data to prepare it for the mape calculation
-    t_minus_1_168hours_all = pred_168_hours.iloc[(len(pred_168_hours)-169):len(pred_168_hours)]
-    t_minus_1_168hours_actual = t_minus_1_168hours_all[['Date','total_demand']].iloc[1:169]
-    t_minus_1_168hours_pred = pd.DataFrame(t_minus_1_168hours_all.iloc[0,2:170]).reset_index(drop=True)
-    t_minus_1_168hours_pred = t_minus_1_168hours_pred.rename(columns={t_minus_1_168hours_pred.columns[-1] : "demand_prediction"})
-    
-    t_minus_1_168hours = pd.concat([t_minus_1_168hours_actual.reset_index(drop=True), t_minus_1_168hours_pred.reset_index(drop=True)], axis=1)
-    t_minus_1_168hours = pd.DataFrame(t_minus_1_168hours)
-
-    mape = calculate_mape(t_minus_1_168hours['total_demand'],t_minus_1_168hours['demand_prediction'])
-
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Prediction Available till", str(pd.to_datetime(pred_168_hours['Date'].iloc[-1]) + pd.Timedelta(hours=168)), "")
-    col2.metric("Last Update", str(pd.Timestamp.today().strftime('%Y-%m-%d')), "",delta_color="off")
-    col3.metric("MAPE", str(round(mape,2))+"%")
-    
-    t_minus_1_168hours['demand_prediction'] = t_minus_1_168hours['demand_prediction'].astype(float)
-
-    # Prepare data for prediction plot
-    latest_pred_168hours= pd.DataFrame(pred_168_hours.iloc[-1,2:170]).reset_index(drop=True)
-    latest_pred_168hours = latest_pred_168hours.rename(columns={latest_pred_168hours.columns[-1] : "demand_prediction"})
-
-    latest_pred_168hours_date = pred_168_hours['Date'].iloc[-1]
-
-    pred_dates_168hours=pd.date_range(start=(pd.to_datetime(latest_pred_168hours_date)), end=(pd.to_datetime(latest_pred_168hours_date) + pd.Timedelta(hours=167)),freq='H')
-    pred_w_dates_168hours = pd.concat([latest_pred_168hours.reset_index(drop=True), pd.DataFrame(pred_dates_168hours).reset_index(drop=True)], axis=1).rename(columns={0 : "Date", "demand_prediction" : "Prediction"})
-
+    # Download predictions
     csv = convert_df(pred_w_dates_168hours)
     st.download_button(
         label="Download Predictions as CSV",
         data=csv,
         file_name='predictions_168hours.csv',
-        mime='text/csv',
-    )
-    
+        mime='text/csv')
+
+    if st.button('Update the Weekly Data', type="primary"):
+        pred_168_hours = data_168_hours()
+        t_minus_1_168hours= t_minus_1_data_process(pred_168_hours, 168)
+        pred_w_dates_168hours = pred_data_process(pred_168_hours, 168)
+
+    mape_168 = calculate_mape(t_minus_1_168hours['total_demand'],t_minus_1_168hours['demand_prediction'])
+
+    # Publishing the first row
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Prediction Available till", str(pd.to_datetime(pred_168_hours['Date'].iloc[-1]) + pd.Timedelta(hours=168)), "")
+    col2.metric("Last Update", str(pd.Timestamp.today().strftime('%Y-%m-%d')) , "", delta_color="off")
+    col3.metric("MAPE", str(round(mape_168,2))+"%")
+
     # Actual vs Prediction Graph
     line_graph168 = px.line(
         data_frame = t_minus_1_168hours, title='Actual vs Predicted Hourly Demand for the last 168-hour period', 
@@ -250,19 +258,9 @@ with tab3:
     line_graph168.for_each_trace(lambda t: t.update(name = new[t.name]))
     st.plotly_chart(line_graph168,use_container_width = True)
 
-
     # Prediction Graph for the next 168 hours
     line_graph_pred168 = px.line(
         data_frame = pred_w_dates_168hours, title='Next 168 hours Hourly Predictions', 
         x='Date', y='Prediction',
         )
     st.plotly_chart(line_graph_pred168,use_container_width = True)
-
-with tab4:
-    st.balloons()
-    #st.info('Ecem Savaş', icon="🚨")
-    #st.link_button("Ecem Savaş", "https://www.linkedin.com/in/ecemsever-bilkent/")
-    #st.snow()
-
-
-
