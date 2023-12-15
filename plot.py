@@ -244,7 +244,7 @@ with tab2:
                     name='Prediction',fill='tonexty',line_color='red',text=pred_w_dates['Prediction']))
     pred_8hours_graph.add_trace(go.Scatter(x=pred_w_dates['Date'], y=pred_w_dates['Prediction']-pred_w_dates['Prediction']*mape_8/100,
                     name='Prediction Lower Range',fill='tonexty',line_color='green'))
-    pred_8hours_graph.update_layout(title='Next 168 hours Hourly Predictions',
+    pred_8hours_graph.update_layout(title='Next 8 hours Hourly Predictions',
                       legend=dict(
                         orientation="h",
                         yanchor="bottom",
