@@ -4,6 +4,7 @@ import streamlit as st
 import os
 import datetime
 from PIL import Image
+import plotly.graph_objects as go
 
 dir = os.path.dirname(__file__)
 
@@ -211,15 +212,36 @@ with tab2:
     new = {"demand_prediction": "Prediction","total_demand": "Actual Demand"}
     line_graph0.for_each_trace(lambda t: t.update(name = new[t.name]))
     line_graph0.update_layout(yaxis=dict(range = [6000, max(t_minus_1['total_demand']*1.3)]))
+    line_graph0.update_layout(legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=1.02,
+                    xanchor="right",
+                    x=1))
     st.plotly_chart(line_graph0,use_container_width = True)
   
     # Prediction Graph for the next 8 hours
-    line_graph_pred = px.line(
-        data_frame = pred_w_dates, title='Next 8 hours Hourly Predictions', 
-        x='Date', y='Prediction',
-        )
-    line_graph_pred.update_layout(yaxis=dict(range=[6000, max(pred_w_dates['Prediction']*1.3)]))
-    st.plotly_chart(line_graph_pred,use_container_width = True)
+    pred_8hours_graph = go.Figure()
+    pred_8hours_graph.add_trace(go.Scatter(x=pred_w_dates['Date'], y=pred_w_dates['Prediction']+pred_w_dates['Prediction']*mape_8/100,
+                    #mode='lines+markers',
+                    name='Prediction Upper Range'))
+    pred_8hours_graph.add_trace(go.Scatter(x=pred_w_dates['Date'], y=pred_w_dates['Prediction'],
+                    #mode='lines+markers',
+                    name='Prediction',fill='tonexty',line_color='red',text=pred_w_dates['Prediction']))
+    pred_8hours_graph.add_trace(go.Scatter(x=pred_w_dates['Date'], y=pred_w_dates['Prediction']-pred_w_dates['Prediction']*mape_8/100,
+                    #mode='lines+markers',
+                    name='Prediction Lower Range',fill='tonexty',line_color='green'))
+    pred_8hours_graph.update_layout(title='Next 168 hours Hourly Predictions',
+                      legend=dict(
+                        orientation="h",
+                        yanchor="bottom",
+                        y=1.02,
+                        xanchor="right",
+                        x=1))
+    
+    st.plotly_chart(pred_8hours_graph,use_container_width = True)
+
+
 
 with tab3:
     t_minus_1_168hours= t_minus_1_data_process(pred_168_hours, 168)
@@ -256,11 +278,31 @@ with tab3:
         )
     new = {"demand_prediction": "Prediction","total_demand": "Actual Demand"}
     line_graph168.for_each_trace(lambda t: t.update(name = new[t.name]))
+    line_graph168.update_layout(legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=1.02,
+                    xanchor="right",
+                    x=1))
     st.plotly_chart(line_graph168,use_container_width = True)
 
     # Prediction Graph for the next 168 hours
-    line_graph_pred168 = px.line(
-        data_frame = pred_w_dates_168hours, title='Next 168 hours Hourly Predictions', 
-        x='Date', y='Prediction',
-        )
-    st.plotly_chart(line_graph_pred168,use_container_width = True)
+    pred_168hours_graph = go.Figure()
+    pred_168hours_graph.add_trace(go.Scatter(x=pred_w_dates_168hours['Date'], y=pred_w_dates_168hours['Prediction']+pred_w_dates_168hours['Prediction']*mape_168/100,
+                    #mode='lines+markers',
+                    name='Prediction Upper Range'))
+    pred_168hours_graph.add_trace(go.Scatter(x=pred_w_dates_168hours['Date'], y=pred_w_dates_168hours['Prediction'],
+                    #mode='lines+markers',
+                    name='Prediction',fill='tonexty',line_color='red',text=pred_w_dates_168hours['Prediction']))
+    pred_168hours_graph.add_trace(go.Scatter(x=pred_w_dates_168hours['Date'], y=pred_w_dates_168hours['Prediction']-pred_w_dates_168hours['Prediction']*mape_168/100,
+                    #mode='lines+markers',
+                    name='Prediction Lower Range',fill='tonexty',line_color='green'))
+    pred_168hours_graph.update_layout(title='Next 168 hours Hourly Predictions',
+                      legend=dict(
+                        orientation="h",
+                        yanchor="bottom",
+                        y=1.02,
+                        xanchor="right",
+                        x=1))
+
+    st.plotly_chart(pred_168hours_graph,use_container_width = True)
