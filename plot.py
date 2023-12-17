@@ -98,9 +98,9 @@ def convert_df(df):
 # Get the latest num_hours values in the data and flatten num_hours predictions that corresponds to that actual values
 def t_minus_1_data_process(df, num_hours): 
     # get latest 8 values
-    t_minus_1_all = df.iloc[(len(df)-(num_hours+1)):(len(df)+1)]
+    t_minus_1_all = df.iloc[(len(df)-(num_hours)):(len(df)+1)]
     # hold actual values in one dataframe
-    t_minus_1_actual = t_minus_1_all[['Date','total_demand']].iloc[1:(num_hours+1)]
+    t_minus_1_actual = t_minus_1_all[['Date','total_demand']].iloc[0:(num_hours+1)]
     # flatten 8 predictions that corresponds to that actual values 
     t_minus_1_pred = pd.DataFrame(t_minus_1_all.iloc[0,2:(num_hours+2)]).reset_index(drop=True)
     t_minus_1_pred = t_minus_1_pred.rename(columns={t_minus_1_pred.columns[-1] : "demand_prediction"})
@@ -109,7 +109,7 @@ def t_minus_1_data_process(df, num_hours):
     t_minus_1 = pd.DataFrame(t_minus_1)
     t_minus_1['demand_prediction'] = t_minus_1['demand_prediction'].astype(float)
 
-    return t_minus_1
+    return t_minus_1
 
 # Preparing data for the prediction plot. Flatten the last row of the data to get prediction of unseen data
 def pred_data_process(df, num_hours):
@@ -162,7 +162,7 @@ with tab1:
         # Create the line graph for hourly
         line_graph2 = px.line(
             data_frame = history_data[history_data["Day"].between(sd, ed)], title='Total Demand Hourly', 
-            x='Day', y='total_demand',
+            x='Day', y='total_demand',labels={"total_demand": "Total Demand"},
             hover_data = ["Date"]
             )
         st.plotly_chart(line_graph2,use_container_width = True)
@@ -223,7 +223,7 @@ with tab2:
         )
     
     # change the namings
-    new = {"demand_prediction": "Prediction","total_demand": "Actual Demand"}
+    new = {"demand_prediction": "Prediction","total_demand": "Actual Demand", "value": "Demand Value"}
     line_graph0.for_each_trace(lambda t: t.update(name = new[t.name]))
     line_graph0.update_layout(yaxis=dict(range = [6000, max(t_minus_1['total_demand']*1.3)]))
     # change the position of legend
@@ -250,7 +250,9 @@ with tab2:
                         yanchor="bottom",
                         y=1.02,
                         xanchor="right",
-                        x=1))
+                        x=1),
+                    xaxis_title = "Demand Value",
+                    yaxis_title = "Date")
     st.plotly_chart(pred_8hours_graph,use_container_width = True)
 
 with tab3:
@@ -292,7 +294,7 @@ with tab3:
         color_discrete_sequence=['red', 'blue']
         )
     # change the namings
-    new = {"demand_prediction": "Prediction","total_demand": "Actual Demand"}
+    new = {"demand_prediction": "Prediction","total_demand": "Actual Demand", "value": "Demand Value"}
     line_graph168.for_each_trace(lambda t: t.update(name = new[t.name]))
     # change the position of legend
     line_graph168.update_layout(legend = dict(
@@ -321,6 +323,8 @@ with tab3:
                         yanchor = "bottom",
                         y = 1.02,
                         xanchor="right",
-                        x = 1))
+                        x = 1),
+                    xaxis_title = "Demand Value",
+                    yaxis_title = "Date")
 
     st.plotly_chart(pred_168hours_graph,use_container_width = True)
