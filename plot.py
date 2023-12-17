@@ -96,7 +96,7 @@ def convert_df(df):
 
 # Processing prediction data to prepare it for the mape calculation
 # Get the latest num_hours values in the data and flatten num_hours predictions that corresponds to that actual values
-def t_minus_1_data_process(df, num_hours): 
+def t_minus_1_data_process(df, num_hours):
     # get latest 8 values
     t_minus_1_all = df.iloc[(len(df)-(num_hours)):(len(df)+1)]
     # hold actual values in one dataframe
@@ -108,8 +108,8 @@ def t_minus_1_data_process(df, num_hours):
     t_minus_1 = pd.concat([t_minus_1_actual.reset_index(drop=True), t_minus_1_pred.reset_index(drop=True)], axis=1)
     t_minus_1 = pd.DataFrame(t_minus_1)
     t_minus_1['demand_prediction'] = t_minus_1['demand_prediction'].astype(float)
-    return t_minus_1
-
+    return t_minus_1
+    
 # Preparing data for the prediction plot. Flatten the last row of the data to get prediction of unseen data
 def pred_data_process(df, num_hours):
 
