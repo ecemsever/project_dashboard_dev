@@ -222,7 +222,7 @@ with tab2:
         )
     
     # change the namings
-    new = {"demand_prediction": "Prediction","total_demand": "Actual Demand", "value": "Demand Value"}
+    new = {"demand_prediction": "Prediction","total_demand": "Actual Demand"}
     line_graph0.for_each_trace(lambda t: t.update(name = new[t.name]))
     line_graph0.update_layout(yaxis=dict(range = [6000, max(t_minus_1['total_demand']*1.3)]))
     # change the position of legend
@@ -231,7 +231,8 @@ with tab2:
                     yanchor="bottom",
                     y=1.02,
                     xanchor="right",
-                    x=1))
+                    x=1),
+                    yaxis_title="Demand Value")
     st.plotly_chart(line_graph0,use_container_width = True)
   
     # Prediction Graph for the next 8 hours
@@ -250,8 +251,8 @@ with tab2:
                         y=1.02,
                         xanchor="right",
                         x=1),
-                    xaxis_title = "Demand Value",
-                    yaxis_title = "Date")
+                    yaxis_title = "Demand Value",
+                    xaxis_title = "Date")
     st.plotly_chart(pred_8hours_graph,use_container_width = True)
 
 with tab3:
@@ -301,7 +302,8 @@ with tab3:
                     yanchor = "bottom",
                     y = 1.02,
                     xanchor = "right",
-                    x = 1))
+                    x = 1),
+                    yaxis_title="Demand Value")
     st.plotly_chart(line_graph168,use_container_width = True)
 
     # Prediction Graph for the next 168 hours
@@ -323,7 +325,7 @@ with tab3:
                         y = 1.02,
                         xanchor="right",
                         x = 1),
-                    xaxis_title = "Demand Value",
-                    yaxis_title = "Date")
+                    yaxis_title = "Demand Value",
+                    xaxis_title = "Date")
 
     st.plotly_chart(pred_168hours_graph,use_container_width = True)
