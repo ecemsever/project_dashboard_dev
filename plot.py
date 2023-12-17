@@ -108,7 +108,6 @@ def t_minus_1_data_process(df, num_hours):
     t_minus_1 = pd.concat([t_minus_1_actual.reset_index(drop=True), t_minus_1_pred.reset_index(drop=True)], axis=1)
     t_minus_1 = pd.DataFrame(t_minus_1)
     t_minus_1['demand_prediction'] = t_minus_1['demand_prediction'].astype(float)
-
     return t_minus_1
 
 # Preparing data for the prediction plot. Flatten the last row of the data to get prediction of unseen data
