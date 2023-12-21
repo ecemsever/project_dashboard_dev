@@ -234,6 +234,7 @@ with tab2:
                     xanchor="right",
                     x=1),
                     yaxis_title="Total Demand - MW")
+
     st.plotly_chart(line_graph0,use_container_width = True)
   
     # Prediction Graph for the next 8 hours
@@ -254,7 +255,7 @@ with tab2:
                         x=1),
                     yaxis_title = "Total Demand - MW",
                     xaxis_title = "Hour")
-    pred_8hours_graph.update_yaxes(tickformat=".1s")
+    pred_8hours_graph.update_yaxes(tickformat="~s")
 
     st.plotly_chart(pred_8hours_graph,use_container_width = True)
 
@@ -299,6 +300,7 @@ with tab3:
     # change the namings
     new = {"demand_prediction": "Prediction","total_demand": "Actual Demand", "value": "Total Demand - MW"}
     line_graph168.for_each_trace(lambda t: t.update(name = new[t.name]))
+
     # change the position of legend
     line_graph168.update_layout(legend = dict(
                     orientation = "h",
@@ -330,6 +332,6 @@ with tab3:
                         x = 1),
                     yaxis_title = "Total Demand - MW",
                     xaxis_title = "Date")
-    pred_168hours_graph.update_yaxes(tickformat=".1s")
+    pred_168hours_graph.update_yaxes(tickformat="~s")
 
     st.plotly_chart(pred_168hours_graph,use_container_width = True)
