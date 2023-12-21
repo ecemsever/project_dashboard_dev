@@ -6,6 +6,7 @@ import datetime
 from PIL import Image
 import plotly.graph_objects as go
 
+
 dir = os.path.dirname(__file__)
 
 # Text to show on the browser tab and page config to be widely fitted
@@ -154,14 +155,14 @@ with tab1:
         # Create the line graph for daily
         line_graph = px.line(
             data_frame = history_data_daily[history_data_daily["Day"].between(sd, ed)], title='Total Demand Daily', 
-            x='Day', y='Total Demand')
+            x='Day', y='Total Demand',labels={"Total Demand": "Total Demand - MW"})
         st.plotly_chart(line_graph,use_container_width = True)
         
     elif option == 'Hourly':
         # Create the line graph for hourly
         line_graph2 = px.line(
             data_frame = history_data[history_data["Day"].between(sd, ed)], title='Total Demand Hourly', 
-            x='Day', y='total_demand',labels={"total_demand": "Total Demand"},
+            x='Day', y='total_demand',labels={"total_demand": "Total Demand - MW"},
             hover_data = ["Date"]
             )
         st.plotly_chart(line_graph2,use_container_width = True)
@@ -171,7 +172,7 @@ with tab1:
         # Create the line graph for weekly
         line_graph4 = px.line(
              data_frame = pred_8_hours_weekly, title='Total Demand Weekly', 
-             x='Year/Week', y='Total Demand')
+             x='Year/Week', y='Total Demand',labels={"Total Demand": "Total Demand - MW"})
         st.plotly_chart(line_graph4,use_container_width = True)
 
     else:
@@ -179,7 +180,7 @@ with tab1:
         # Create the line graph for monthly
         line_graph3 = px.line(
             data_frame = pred_8_hours_monthly, title='Total Demand Monthly', 
-            x='Year/Month', y='Total Demand')
+            x='Year/Month', y='Total Demand',labels={"Total Demand": "Total Demand - MW"})
         st.plotly_chart(line_graph3,use_container_width = True)
 
 
@@ -217,12 +218,12 @@ with tab2:
         data_frame = t_minus_1, title = 'Actual vs Predicted Hourly Demand for the last 8-hour period', 
         x='Date', y = ['total_demand','demand_prediction'],
         hover_data = ["Date"],
-        labels = {"timestamp": "Date","variable":""},
+        labels = {"timestamp": "Hour","variable":"","Date":"Hour"},
         color_discrete_sequence = ['red', 'blue']
         )
     
     # change the namings
-    new = {"demand_prediction": "Prediction","total_demand": "Actual Demand"}
+    new = {"demand_prediction": "Prediction","total_demand": "Total Demand - MW"}
     line_graph0.for_each_trace(lambda t: t.update(name = new[t.name]))
     line_graph0.update_layout(yaxis=dict(range = [6000, max(t_minus_1['total_demand']*1.3)]))
     # change the position of legend
@@ -232,7 +233,7 @@ with tab2:
                     y=1.02,
                     xanchor="right",
                     x=1),
-                    yaxis_title="Demand Value")
+                    yaxis_title="Total Demand - MW")
     st.plotly_chart(line_graph0,use_container_width = True)
   
     # Prediction Graph for the next 8 hours
@@ -251,8 +252,10 @@ with tab2:
                         y=1.02,
                         xanchor="right",
                         x=1),
-                    yaxis_title = "Demand Value",
-                    xaxis_title = "Date")
+                    yaxis_title = "Total Demand - MW",
+                    xaxis_title = "Hour")
+    pred_8hours_graph.update_yaxes(tickformat=".1s")
+
     st.plotly_chart(pred_8hours_graph,use_container_width = True)
 
 with tab3:
@@ -294,7 +297,7 @@ with tab3:
         color_discrete_sequence=['red', 'blue']
         )
     # change the namings
-    new = {"demand_prediction": "Prediction","total_demand": "Actual Demand", "value": "Demand Value"}
+    new = {"demand_prediction": "Prediction","total_demand": "Actual Demand", "value": "Total Demand - MW"}
     line_graph168.for_each_trace(lambda t: t.update(name = new[t.name]))
     # change the position of legend
     line_graph168.update_layout(legend = dict(
@@ -303,7 +306,7 @@ with tab3:
                     y = 1.02,
                     xanchor = "right",
                     x = 1),
-                    yaxis_title="Demand Value")
+                    yaxis_title="Total Demand - MW")
     st.plotly_chart(line_graph168,use_container_width = True)
 
     # Prediction Graph for the next 168 hours
@@ -325,7 +328,8 @@ with tab3:
                         y = 1.02,
                         xanchor="right",
                         x = 1),
-                    yaxis_title = "Demand Value",
+                    yaxis_title = "Total Demand - MW",
                     xaxis_title = "Date")
+    pred_168hours_graph.update_yaxes(tickformat=".1s")
 
     st.plotly_chart(pred_168hours_graph,use_container_width = True)
